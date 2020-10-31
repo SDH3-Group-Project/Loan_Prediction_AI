@@ -5,6 +5,7 @@
 import numpy as np
 import pandas as pd
 import seaborn as sns
+import tensorflow as tf
 
 from sklearn.preprocessing import LabelEncoder
 from sklearn.model_selection import train_test_split
@@ -46,7 +47,15 @@ model.add(Dense(1, activation='sigmoid')) # Output Layer
 model.compile(loss = 'binary_crossentropy',optimizer='adam', metrics=['accuracy']) # Binary Crossentropy is the most preferred loss function for binary classification problems. Adam is the preferred optimization algorithm. Accuracy metrics are stored when the model is being trained. 
 
 model.fit(input_train, output_train, batch_size=32, epochs=100) # Standard batch size and epochs
-model.save('loan_dataset_model.h5')
+
+# model.save('loan_dataset_model.h5') - In case the model needs to be saved as .h5. Firebase accepts TFLite models for upload.
+
+converter = tf.lite.TFLiteConverter.from_keras_model(model)
+tflite_model = converter.convert()
+
+with open('loan_dataset_model.tflite', 'wb') as f:
+    f.write(tflite_model)
+
 output_prediction = model.predict(input_test).astype("int32")
 output_prediction = (output_prediction > 0.5) # Convert output prediction to 1 if >0.5 in the sigmoid function
 
