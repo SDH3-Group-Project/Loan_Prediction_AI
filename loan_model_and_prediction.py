@@ -14,15 +14,10 @@ from keras.wrappers.scikit_learn import KerasClassifier
 from sklearn.model_selection import StratifiedKFold
 from sklearn.model_selection import cross_val_score
 from sklearn.metrics import accuracy_score
+from keras.layers.experimental import preprocessing
+from tensorflow.python.keras.layers.normalization import BatchNormalization
 
-def fit_data(inputs):
-    for element in inputs:
-        mean = np.mean(element)
-        std = np.std(element)
-        for i in range(len(element)):
-            element[i] -= mean
-            element[i] /= std
-    
+
 data = pd.read_csv('train_data.csv')
 
 data['LoanAmount'] = data['LoanAmount'].fillna(data['LoanAmount'].mean()) # Fills empty loan data with the overall mean as a range of values are found
@@ -61,12 +56,11 @@ output_variable = data['Loan_Status'].values # Only one output variable - Loan S
 
 input_train, input_test, output_train, output_test = train_test_split(input_variables, output_variable ,test_size=0.2, random_state=0) # 80% of the data is used for training and 20% used for testing
 
-# Standardizes the data to make it easier to compare. This can be verified by checking the mean and standard deviation, which will be 1 and 0 respectively
-
-fit_data(input_train)
-fit_data(input_test)
+normalizer = preprocessing.Normalization()
+normalizer.adapt(input_train)
 
 model = tf.keras.models.Sequential()
+model.add(BatchNormalization())
 model.add(tf.keras.layers.Dense(units=6, activation='relu')) # Input layer
 model.add(tf.keras.layers.Dense(units=6, activation='relu')) # Hidden layer
 model.add(tf.keras.layers.Dense(units=1, activation='sigmoid')) # Output layer
